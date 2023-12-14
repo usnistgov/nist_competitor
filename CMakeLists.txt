@@ -45,6 +45,18 @@ install(TARGETS competitor
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
+# Add crash executable
+add_executable(crash src/crash.cpp)
+target_include_directories(crash PRIVATE include)
+target_link_libraries(crash
+  ${PROJECT_NAME}
+)
+ament_target_dependencies(crash ${THIS_PACKAGE_INCLUDE_DEPENDS})
+
+install(TARGETS crash
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
+)
+
 install(TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib

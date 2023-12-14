@@ -54,7 +54,7 @@ def launch_setup(context, *args, **kwargs):
     # Test Competitor node
     test_competitor = Node(
         package="nist_competitor",
-        executable="competitor",
+        executable="crash",
         output="screen",
         parameters=[
             moveit_config.robot_description,

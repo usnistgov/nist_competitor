@@ -930,6 +930,7 @@ bool TestCompetitor::FloorRobotPickBinPart(ariac_msgs::msg::Part part_to_pick)
 
 bool TestCompetitor::FloorRobotPickConveyorPart(ariac_msgs::msg::Part part_to_pick)
 {
+  RCLCPP_ERROR(get_logger(), "inside pickconveyorpart");
   for (auto parts : conveyor_parts_expected_){
     if (parts.part.type == part_to_pick.type && parts.part.color == part_to_pick.color){
       RCLCPP_INFO_STREAM(get_logger(), "Attempting to pick a " << part_colors_[part_to_pick.color] << " " << part_types_[part_to_pick.type] << " from the conveyor");
@@ -940,7 +941,7 @@ bool TestCompetitor::FloorRobotPickConveyorPart(ariac_msgs::msg::Part part_to_pi
       return false;
     }
   }
-  
+  RCLCPP_ERROR(get_logger(), "after expected parts parsing");
   bool found_part = false;
   bool part_picked = false;
   int num_tries = 0;
@@ -961,10 +962,11 @@ bool TestCompetitor::FloorRobotPickConveyorPart(ariac_msgs::msg::Part part_to_pi
     // Move robot to predefined pick location
     floor_robot_.setJointValueTarget(floor_conveyor_js_);
     FloorRobotMovetoTarget();
-
+    RCLCPP_ERROR(get_logger(), "Sent to conveyor position");
     // Find the requested part on the conveyor
     do {
         { 
+        RCLCPP_ERROR(get_logger(), "Inside Do");
         // Lock conveyor_parts_ mutex
         std::lock_guard<std::mutex> lock(conveyor_parts_mutex);
         auto it = conveyor_parts_.begin();

@@ -970,6 +970,7 @@ bool TestCompetitor::FloorRobotPickConveyorPart(ariac_msgs::msg::Part part_to_pi
         // Lock conveyor_parts_ mutex
         std::lock_guard<std::mutex> lock(conveyor_parts_mutex);
         auto it = conveyor_parts_.begin();
+        RCLCPP_ERROR(get_logger(), "before iterating the conveyor parts");
         for (; it != conveyor_parts_.end(); ) {
             RCLCPP_ERROR(get_logger(), "Pasts checking");
             auto part = it->first.part;

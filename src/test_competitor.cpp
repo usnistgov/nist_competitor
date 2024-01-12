@@ -966,19 +966,22 @@ bool TestCompetitor::FloorRobotPickConveyorPart(ariac_msgs::msg::Part part_to_pi
     // Find the requested part on the conveyor
     do {
         { 
-        RCLCPP_ERROR(get_logger(), "Inside Do");
+        
         // Lock conveyor_parts_ mutex
         std::lock_guard<std::mutex> lock(conveyor_parts_mutex);
         auto it = conveyor_parts_.begin();
         for (; it != conveyor_parts_.end(); ) {
+            RCLCPP_ERROR(get_logger(), "Pasts checking");
             auto part = it->first.part;
             if (part.type == part_to_pick.type && part.color == part_to_pick.color)
             {
+              RCLCPP_ERROR(get_logger(), "Found Parts");
               part_pose = MultiplyPose(conveyor_camera_pose_, it->first.pose);
               detection_time = it->second;
-
+              RCLCPP_ERROR(get_logger(), "multiplied pose");
               elapsed_time = rclcpp::Time(now()) - detection_time;
               auto current_part_position_ = part_pose.position.y - (elapsed_time.seconds() * conveyor_speed_);
+              RCLCPP_ERROR(get_logger(), "current part position %s",current_part_position_);
               // Check if part hasn't passed the pick location
               if (current_part_position_ > 0)
               {
@@ -988,6 +991,7 @@ bool TestCompetitor::FloorRobotPickConveyorPart(ariac_msgs::msg::Part part_to_pi
                 {
                   found_part = true;
                   conveyor_parts_.erase(it);
+                  RCLCPP_ERROR(get_logger(), "Pars erased");
                   break;
                 }
               }

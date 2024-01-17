@@ -43,5 +43,3 @@ static_sensors:
     pose:
       xyz: [-0.573, 3.915, 1.8]
       rpy: [pi/2, pi/2, 0]
-
-  

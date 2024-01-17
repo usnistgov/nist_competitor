@@ -858,7 +858,7 @@ bool TestCompetitor::FloorRobotPickBinPart(ariac_msgs::msg::Part part_to_pick)
   }
   if (!found_part)
   {
-    RCLCPP_ERROR(get_logger(), "Unable to locate part in the bins");
+    RCLCPP_INFO(get_logger(), "Unable to locate part in the bins");
     return false;
   }
 
@@ -930,18 +930,22 @@ bool TestCompetitor::FloorRobotPickBinPart(ariac_msgs::msg::Part part_to_pick)
 
 bool TestCompetitor::FloorRobotPickConveyorPart(ariac_msgs::msg::Part part_to_pick)
 {
-  RCLCPP_ERROR(get_logger(), "inside pickconveyorpart");
+  if (conveyor_parts_expected_.empty())
+  {
+    RCLCPP_INFO(get_logger(), "No parts expected on the conveyor");
+    return false;
+  }
   for (auto parts : conveyor_parts_expected_){
     if (parts.part.type == part_to_pick.type && parts.part.color == part_to_pick.color){
       RCLCPP_INFO_STREAM(get_logger(), "Attempting to pick a " << part_colors_[part_to_pick.color] << " " << part_types_[part_to_pick.type] << " from the conveyor");
       break;
     }
     else if (parts == conveyor_parts_expected_.back()){
-      RCLCPP_ERROR(get_logger(), "Unable to locate part on the conveyor");
+      RCLCPP_INFO(get_logger(), "Unable to locate part on the conveyor");
       return false;
     }
   }
-  RCLCPP_ERROR(get_logger(), "after expected parts parsing");
+  
   bool found_part = false;
   bool part_picked = false;
   int num_tries = 0;
@@ -962,27 +966,22 @@ bool TestCompetitor::FloorRobotPickConveyorPart(ariac_msgs::msg::Part part_to_pi
     // Move robot to predefined pick location
     floor_robot_.setJointValueTarget(floor_conveyor_js_);
     FloorRobotMovetoTarget();
-    RCLCPP_ERROR(get_logger(), "Sent to conveyor position");
+
     // Find the requested part on the conveyor
     do {
         { 
-        
         // Lock conveyor_parts_ mutex
         std::lock_guard<std::mutex> lock(conveyor_parts_mutex);
         auto it = conveyor_parts_.begin();
-        RCLCPP_ERROR(get_logger(), "before iterating the conveyor parts");
         for (; it != conveyor_parts_.end(); ) {
-            RCLCPP_ERROR(get_logger(), "Pasts checking");
             auto part = it->first.part;
             if (part.type == part_to_pick.type && part.color == part_to_pick.color)
             {
-              RCLCPP_ERROR(get_logger(), "Found Parts");
               part_pose = MultiplyPose(conveyor_camera_pose_, it->first.pose);
               detection_time = it->second;
-              RCLCPP_ERROR(get_logger(), "multiplied pose");
+
               elapsed_time = rclcpp::Time(now()) - detection_time;
               auto current_part_position_ = part_pose.position.y - (elapsed_time.seconds() * conveyor_speed_);
-              RCLCPP_ERROR(get_logger(), "current part position %s",current_part_position_);
               // Check if part hasn't passed the pick location
               if (current_part_position_ > 0)
               {
@@ -992,7 +991,6 @@ bool TestCompetitor::FloorRobotPickConveyorPart(ariac_msgs::msg::Part part_to_pi
                 {
                   found_part = true;
                   conveyor_parts_.erase(it);
-                  RCLCPP_ERROR(get_logger(), "Pars erased");
                   break;
                 }
               }
@@ -1202,6 +1200,8 @@ bool TestCompetitor::CeilingRobotWaitForAssemble(int station, ariac_msgs::msg::A
   std::vector<geometry_msgs::msg::Pose> waypoints;
   geometry_msgs::msg::Pose starting_pose = ceiling_robot_.getCurrentPose().pose;
 
+  auto rotation = GetYaw(FrameWorldPose("as"+std::to_string(station)+"_insert_frame"));
+
   bool assembled = false;
   while (!assembled)
   {
@@ -1230,14 +1230,14 @@ bool TestCompetitor::CeilingRobotWaitForAssemble(int station, ariac_msgs::msg::A
     double step = 0.0005;
 
     waypoints.clear();
-    starting_pose.position.x += step * part.install_direction.x;
-    starting_pose.position.y += step * part.install_direction.y;
+    starting_pose.position.x += step * sin(-rotation);
+    starting_pose.position.y += step * cos(-rotation);
     starting_pose.position.z += step * part.install_direction.z;
     waypoints.push_back(starting_pose);
 
     CeilingRobotMoveCartesian(waypoints, 0.01, 0.01, false);
 
-    usleep(500);
+    usleep(100);
 
     if (now() - start > rclcpp::Duration::from_seconds(5))
     {
@@ -1431,7 +1431,7 @@ bool TestCompetitor::CeilingRobotAssemblePart(int station, ariac_msgs::msg::Asse
 
   // Move to just before assembly position
   waypoints.clear();
-  waypoints.push_back(tf2::toMsg(insert * KDL::Frame(install * -0.003) * part_assemble * part_to_gripper));
+  waypoints.push_back(tf2::toMsg(insert * KDL::Frame(install * -0.005) * part_assemble * part_to_gripper));
   CeilingRobotMoveCartesian(waypoints, 0.1, 0.1, true);
 
   CeilingRobotWaitForAssemble(station, part);
@@ -1856,7 +1856,7 @@ bool TestCompetitor::SubmitOrder(std::string order_id)
 
 bool TestCompetitor::LockAGVTray(int agv_num)
 {
-  RCLCPP_INFO_STREAM(get_logger(), "Locking AGV" << agv_num << " and tray");
+  RCLCPP_INFO_STREAM(get_logger(), "Locking Tray to AGV" << agv_num);
 
   rclcpp::Client<std_srvs::srv::Trigger>::SharedPtr client;
 

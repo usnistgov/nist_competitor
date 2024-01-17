@@ -46,7 +46,7 @@ def launch_setup(context, *args, **kwargs):
         launch_arguments={
             'trial_name': trial_name,
             'competitor_pkg': "nist_competitor",
-            'sensor_config': "sensors",
+            # 'sensor_config': "sensors",
             'dev_mode': "true",
         }.items()
     )

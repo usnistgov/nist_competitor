@@ -57,6 +57,18 @@ install(TARGETS crash
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
+# Add moveit test executable
+add_executable(moveit_test src/moveit_test.cpp)
+target_include_directories(moveit_test PRIVATE include)
+target_link_libraries(moveit_test
+  ${PROJECT_NAME}
+)
+ament_target_dependencies(moveit_test ${THIS_PACKAGE_INCLUDE_DEPENDS})
+
+install(TARGETS moveit_test
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
+)
+
 install(TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib

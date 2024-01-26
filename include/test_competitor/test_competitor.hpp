@@ -89,12 +89,13 @@ public:
 private:
   // Robot Move Functions
   bool FloorRobotMovetoTarget();
-  bool FloorRobotMoveCartesian(std::vector<geometry_msgs::msg::Pose> waypoints, double vsf, double asf);
-  std::pair<bool,moveit_msgs::msg::RobotTrajectory> FloorRobotPlanCartesian(std::vector<geometry_msgs::msg::Pose> waypoints, double vsf, double asf);
+  bool FloorRobotMoveCartesian(std::vector<geometry_msgs::msg::Pose> waypoints, double vsf, double asf, bool avoid_collisions);
+  std::pair<bool, moveit_msgs::msg::RobotTrajectory> FloorRobotPlanCartesian(std::vector<geometry_msgs::msg::Pose> waypoints, double vsf, double asf, bool avoid_collisions);
   void FloorRobotWaitForAttach(double timeout);
 
   bool CeilingRobotMovetoTarget();
   bool CeilingRobotMoveCartesian(std::vector<geometry_msgs::msg::Pose> waypoints, double vsf, double asf, bool avoid_collisions);
+  std::pair<bool, moveit_msgs::msg::RobotTrajectory> CeilingRobotPlanCartesian(std::vector<geometry_msgs::msg::Pose> waypoints, double vsf, double asf, bool avoid_collisions);
   void CeilingRobotWaitForAttach(double timeout);
   bool CeilingRobotWaitForAssemble(int station, ariac_msgs::msg::AssemblyPart part);
   bool CeilingRobotMoveToAssemblyStation(int station);
@@ -111,20 +112,20 @@ private:
   double GetYaw(geometry_msgs::msg::Pose pose);
   geometry_msgs::msg::Quaternion QuaternionFromRPY(double r, double p, double y);
 
+  moveit_msgs::msg::CollisionObject CreateCollisionObject(std::string name, std::string mesh_file, geometry_msgs::msg::Pose model_pose);
   void AddModelToPlanningScene(std::string name, std::string mesh_file, geometry_msgs::msg::Pose model_pose);
-  
+
   // AGV location
   std::map<int, int> agv_locations_ = {{1, -1}, {2, -1}, {3, -1}, {4, -1}};
-  
 
   // Callback Groups
   rclcpp::CallbackGroup::SharedPtr client_cb_group_;
   rclcpp::CallbackGroup::SharedPtr topic_cb_group_;
 
-  // MoveIt Interfaces 
+  // MoveIt Interfaces
   moveit::planning_interface::MoveGroupInterface floor_robot_;
   moveit::planning_interface::MoveGroupInterface ceiling_robot_;
-  
+
   moveit::planning_interface::PlanningSceneInterface planning_scene_;
 
   trajectory_processing::TimeOptimalTrajectoryGeneration totg_;
@@ -186,7 +187,7 @@ private:
   // Bins
   std::vector<ariac_msgs::msg::PartPose> left_bins_parts_;
   std::vector<ariac_msgs::msg::PartPose> right_bins_parts_;
-  std::vector<std::pair <ariac_msgs::msg::PartPose, rclcpp::Time>> conveyor_parts_;
+  std::vector<std::pair<ariac_msgs::msg::PartPose, rclcpp::Time>> conveyor_parts_;
   std::vector<ariac_msgs::msg::PartPose> conveyor_part_detected_;
   std::vector<ariac_msgs::msg::PartLot> conveyor_parts_expected_;
 
@@ -242,134 +243,125 @@ private:
   // Constants
   double conveyor_speed_ = 0.2;
   double kit_tray_thickness_ = 0.01;
-  double drop_height_ = 0.002;
+  double drop_height_ = 0.005;
   double pick_offset_ = 0.003;
+  double assembly_offset_ = 0.02;
   double battery_grip_offset_ = -0.05;
 
   std::map<int, std::string> part_types_ = {
-    {ariac_msgs::msg::Part::BATTERY, "battery"},
-    {ariac_msgs::msg::Part::PUMP, "pump"},
-    {ariac_msgs::msg::Part::REGULATOR, "regulator"},
-    {ariac_msgs::msg::Part::SENSOR, "sensor"}
-  };
+      {ariac_msgs::msg::Part::BATTERY, "battery"},
+      {ariac_msgs::msg::Part::PUMP, "pump"},
+      {ariac_msgs::msg::Part::REGULATOR, "regulator"},
+      {ariac_msgs::msg::Part::SENSOR, "sensor"}};
 
   std::map<int, std::string> part_colors_ = {
-    {ariac_msgs::msg::Part::RED, "red"},
-    {ariac_msgs::msg::Part::BLUE, "blue"},
-    {ariac_msgs::msg::Part::GREEN, "green"},
-    {ariac_msgs::msg::Part::ORANGE, "orange"},
-    {ariac_msgs::msg::Part::PURPLE, "purple"},
+      {ariac_msgs::msg::Part::RED, "red"},
+      {ariac_msgs::msg::Part::BLUE, "blue"},
+      {ariac_msgs::msg::Part::GREEN, "green"},
+      {ariac_msgs::msg::Part::ORANGE, "orange"},
+      {ariac_msgs::msg::Part::PURPLE, "purple"},
   };
 
   // Part heights
   std::map<int, double> part_heights_ = {
-    {ariac_msgs::msg::Part::BATTERY, 0.04},
-    {ariac_msgs::msg::Part::PUMP, 0.12},
-    {ariac_msgs::msg::Part::REGULATOR, 0.07},
-    {ariac_msgs::msg::Part::SENSOR, 0.07}
-  };
+      {ariac_msgs::msg::Part::BATTERY, 0.04},
+      {ariac_msgs::msg::Part::PUMP, 0.12},
+      {ariac_msgs::msg::Part::REGULATOR, 0.07},
+      {ariac_msgs::msg::Part::SENSOR, 0.07}};
 
   // Quadrant Offsets
   std::map<int, std::pair<double, double>> quad_offsets_ = {
-    {ariac_msgs::msg::KittingPart::QUADRANT1, std::pair<double, double>(-0.08, 0.12)},
-    {ariac_msgs::msg::KittingPart::QUADRANT2, std::pair<double, double>(0.08, 0.12)},
-    {ariac_msgs::msg::KittingPart::QUADRANT3, std::pair<double, double>(-0.08, -0.12)},
-    {ariac_msgs::msg::KittingPart::QUADRANT4, std::pair<double, double>(0.08, -0.12)},
+      {ariac_msgs::msg::KittingPart::QUADRANT1, std::pair<double, double>(-0.08, 0.12)},
+      {ariac_msgs::msg::KittingPart::QUADRANT2, std::pair<double, double>(0.08, 0.12)},
+      {ariac_msgs::msg::KittingPart::QUADRANT3, std::pair<double, double>(-0.08, -0.12)},
+      {ariac_msgs::msg::KittingPart::QUADRANT4, std::pair<double, double>(0.08, -0.12)},
   };
 
   std::map<std::string, double> rail_positions_ = {
-    {"agv1", -4.5},
-    {"agv2", -1.2},
-    {"agv3", 1.2},
-    {"agv4", 4.5},
-    {"left_bins", 3}, 
-    {"right_bins", -3}
-  };
+      {"agv1", -4.5},
+      {"agv2", -1.2},
+      {"agv3", 1.2},
+      {"agv4", 4.5},
+      {"left_bins", 3},
+      {"right_bins", -3}};
 
   // Joint value targets for kitting stations
   std::map<std::string, double> floor_kts1_js_ = {
-    {"linear_actuator_joint", 4.0},
-    {"floor_shoulder_pan_joint", 1.57},
-    {"floor_shoulder_lift_joint", -1.57},
-    {"floor_elbow_joint", 1.57},
-    {"floor_wrist_1_joint", -1.57},
-    {"floor_wrist_2_joint", -1.57},
-    {"floor_wrist_3_joint", 0.0}
-  };
+      {"linear_actuator_joint", 4.0},
+      {"floor_shoulder_pan_joint", 1.57},
+      {"floor_shoulder_lift_joint", -1.57},
+      {"floor_elbow_joint", 1.57},
+      {"floor_wrist_1_joint", -1.57},
+      {"floor_wrist_2_joint", -1.57},
+      {"floor_wrist_3_joint", 0.0}};
 
   std::map<std::string, double> floor_kts2_js_ = {
-    {"linear_actuator_joint", -4.0},
-    {"floor_shoulder_pan_joint", -1.57},
-    {"floor_shoulder_lift_joint", -1.57},
-    {"floor_elbow_joint", 1.57},
-    {"floor_wrist_1_joint", -1.57},
-    {"floor_wrist_2_joint", -1.57},
-    {"floor_wrist_3_joint", 0.0}
-  };
+      {"linear_actuator_joint", -4.0},
+      {"floor_shoulder_pan_joint", -1.57},
+      {"floor_shoulder_lift_joint", -1.57},
+      {"floor_elbow_joint", 1.57},
+      {"floor_wrist_1_joint", -1.57},
+      {"floor_wrist_2_joint", -1.57},
+      {"floor_wrist_3_joint", 0.0}};
 
   std::map<std::string, double> ceiling_as1_js_ = {
-    {"gantry_x_axis_joint", 1},
-    {"gantry_y_axis_joint", -3},
-    {"gantry_rotation_joint", 1.571},
-    {"ceiling_shoulder_pan_joint", 0},
-    {"ceiling_shoulder_lift_joint", -2.37},
-    {"ceiling_elbow_joint", 2.37},
-    {"ceiling_wrist_1_joint", 3.14},
-    {"ceiling_wrist_2_joint", -1.57},
-    {"ceiling_wrist_3_joint", 0}
-  };
+      {"gantry_x_axis_joint", 1},
+      {"gantry_y_axis_joint", -3},
+      {"gantry_rotation_joint", 1.571},
+      {"ceiling_shoulder_pan_joint", 0},
+      {"ceiling_shoulder_lift_joint", -2.37},
+      {"ceiling_elbow_joint", 2.37},
+      {"ceiling_wrist_1_joint", 3.14},
+      {"ceiling_wrist_2_joint", -1.57},
+      {"ceiling_wrist_3_joint", 0}};
 
   std::map<std::string, double> ceiling_as2_js_ = {
-    {"gantry_x_axis_joint", -4},
-    {"gantry_y_axis_joint", -3},
-    {"gantry_rotation_joint", 1.571},
-    {"ceiling_shoulder_pan_joint", 0},
-    {"ceiling_shoulder_lift_joint", -2.37},
-    {"ceiling_elbow_joint", 2.37},
-    {"ceiling_wrist_1_joint", 3.14},
-    {"ceiling_wrist_2_joint", -1.57},
-    {"ceiling_wrist_3_joint", 0}
-  };
+      {"gantry_x_axis_joint", -4},
+      {"gantry_y_axis_joint", -3},
+      {"gantry_rotation_joint", 1.571},
+      {"ceiling_shoulder_pan_joint", 0},
+      {"ceiling_shoulder_lift_joint", -2.37},
+      {"ceiling_elbow_joint", 2.37},
+      {"ceiling_wrist_1_joint", 3.14},
+      {"ceiling_wrist_2_joint", -1.57},
+      {"ceiling_wrist_3_joint", 0}};
 
   std::map<std::string, double> ceiling_as3_js_ = {
-    {"gantry_x_axis_joint", 1},
-    {"gantry_y_axis_joint", 3},
-    {"gantry_rotation_joint", 1.571},
-    {"ceiling_shoulder_pan_joint", 0},
-    {"ceiling_shoulder_lift_joint", -2.37},
-    {"ceiling_elbow_joint", 2.37},
-    {"ceiling_wrist_1_joint", 3.14},
-    {"ceiling_wrist_2_joint", -1.57},
-    {"ceiling_wrist_3_joint", 0}
-  };
+      {"gantry_x_axis_joint", 1},
+      {"gantry_y_axis_joint", 3},
+      {"gantry_rotation_joint", 1.571},
+      {"ceiling_shoulder_pan_joint", 0},
+      {"ceiling_shoulder_lift_joint", -2.37},
+      {"ceiling_elbow_joint", 2.37},
+      {"ceiling_wrist_1_joint", 3.14},
+      {"ceiling_wrist_2_joint", -1.57},
+      {"ceiling_wrist_3_joint", 0}};
 
   std::map<std::string, double> ceiling_as4_js_ = {
-    {"gantry_x_axis_joint", -4},
-    {"gantry_y_axis_joint", 3},
-    {"gantry_rotation_joint", 1.571},
-    {"ceiling_shoulder_pan_joint", 0},
-    {"ceiling_shoulder_lift_joint", -2.37},
-    {"ceiling_elbow_joint", 2.37},
-    {"ceiling_wrist_1_joint", 3.14},
-    {"ceiling_wrist_2_joint", -1.57},
-    {"ceiling_wrist_3_joint", 0}
-  };
+      {"gantry_x_axis_joint", -4},
+      {"gantry_y_axis_joint", 3},
+      {"gantry_rotation_joint", 1.571},
+      {"ceiling_shoulder_pan_joint", 0},
+      {"ceiling_shoulder_lift_joint", -2.37},
+      {"ceiling_elbow_joint", 2.37},
+      {"ceiling_wrist_1_joint", 3.14},
+      {"ceiling_wrist_2_joint", -1.57},
+      {"ceiling_wrist_3_joint", 0}};
 
   std::map<std::string, double> floor_conveyor_js_ = {
-    {"linear_actuator_joint", 0.0},
-    {"floor_shoulder_pan_joint", 3.14},
-    {"floor_shoulder_lift_joint", -0.9162979},
-    {"floor_elbow_joint", 2.04204},
-    {"floor_wrist_1_joint", -2.67035},
-    {"floor_wrist_2_joint", -1.57},
-    {"floor_wrist_3_joint", 0.0}
-  };
+      {"linear_actuator_joint", 0.0},
+      {"floor_shoulder_pan_joint", 3.14},
+      {"floor_shoulder_lift_joint", -0.9162979},
+      {"floor_elbow_joint", 2.04204},
+      {"floor_wrist_1_joint", -2.67035},
+      {"floor_wrist_2_joint", -1.57},
+      {"floor_wrist_3_joint", 0.0}};
 
   std::map<int, std::string> agv_destination_ = {
-    {ariac_msgs::msg::AGVStatus::KITTING, "kitting"},
-    {ariac_msgs::msg::AGVStatus::ASSEMBLY_FRONT, "assembly station front"},
-    {ariac_msgs::msg::AGVStatus::ASSEMBLY_BACK, "assembly station back"},
-    {ariac_msgs::msg::AGVStatus::WAREHOUSE, "warehouse"}
-  };
-  
+      {ariac_msgs::msg::AGVStatus::KITTING, "kitting"},
+      {ariac_msgs::msg::AGVStatus::ASSEMBLY_FRONT, "assembly station front"},
+      {ariac_msgs::msg::AGVStatus::ASSEMBLY_BACK, "assembly station back"},
+      {ariac_msgs::msg::AGVStatus::WAREHOUSE, "warehouse"}};
+
+  std::vector<std::string> order_planning_scene_objects_;
 };

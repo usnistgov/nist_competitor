@@ -17,12 +17,10 @@ from moveit_configs_utils import MoveItConfigsBuilder
 
 
 def launch_setup(context, *args, **kwargs):
-    urdf = os.path.join(get_package_share_directory(
-        "ariac_description"), "urdf/ariac_robots/ariac_robots.urdf.xacro")
+    urdf = os.path.join(get_package_share_directory("ariac_description"), "urdf/ariac_robots/ariac_robots.urdf.xacro")
 
     moveit_config = (
-        MoveItConfigsBuilder(
-            "ariac_robots", package_name="ariac_moveit_config")
+        MoveItConfigsBuilder("ariac_robots", package_name="ariac_moveit_config")
         .robot_description(urdf)
         .robot_description_semantic(file_path="config/ariac_robots.srdf")
         .trajectory_execution(file_path="config/moveit_controllers.yaml")
@@ -30,9 +28,9 @@ def launch_setup(context, *args, **kwargs):
         .to_moveit_configs()
     )
 
-    test_competitor = Node(
-        package="nist_competitor",
-        executable="competitor",
+    moveit_test = Node(
+        package="test_competitor",
+        executable="moveit_test",
         output="screen",
         parameters=[
             moveit_config.robot_description,
@@ -41,14 +39,13 @@ def launch_setup(context, *args, **kwargs):
             moveit_config.joint_limits,
             {"use_sim_time": True},
         ],
-        arguments=['--ros-args', '--log-level', 'move_group_interface:=warn', '--log-level',
-                   'moveit_trajectory_processing.time_optimal_trajectory_generation:=error']
+        arguments=['--ros-args', '--log-level', 'move_group_interface:=warn', '--log-level', 'moveit_trajectory_processing.time_optimal_trajectory_generation:=error']
     )
 
     start_rviz = LaunchConfiguration("rviz")
 
     rviz_config_file = PathJoinSubstitution(
-        [FindPackageShare("nist_competitor"), "rviz", "nist_competitor.rviz"]
+        [FindPackageShare("test_competitor"), "rviz", "test_competitor.rviz"]
     )
 
     rviz_node = Node(
@@ -68,19 +65,17 @@ def launch_setup(context, *args, **kwargs):
     )
 
     nodes_to_start = [
-        test_competitor,
+        moveit_test,
         rviz_node
     ]
 
     return nodes_to_start
 
-
 def generate_launch_description():
     declared_arguments = []
 
     declared_arguments.append(
-        DeclareLaunchArgument("rviz", default_value="false",
-                              description="start rviz node?")
+        DeclareLaunchArgument("rviz", default_value="false", description="start rviz node?")
     )
 
     return LaunchDescription(declared_arguments + [OpaqueFunction(function=launch_setup)])

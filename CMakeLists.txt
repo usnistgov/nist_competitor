@@ -24,8 +24,9 @@ foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
 
+# Add nist competitor library
 add_library(${PROJECT_NAME} SHARED
-  src/test_competitor.cpp
+  src/nist_competitor.cpp
 )
 target_include_directories(${PROJECT_NAME} PUBLIC
   include
@@ -33,7 +34,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 
 ament_target_dependencies(${PROJECT_NAME} ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
-# Add main competitor executable
+# Add competitor executable
 add_executable(competitor src/competitor.cpp)
 target_include_directories(competitor PRIVATE include)
 target_link_libraries(competitor
@@ -42,30 +43,6 @@ target_link_libraries(competitor
 ament_target_dependencies(competitor ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
 install(TARGETS competitor
-  RUNTIME DESTINATION lib/${PROJECT_NAME}
-)
-
-# Add crash executable
-add_executable(crash src/crash.cpp)
-target_include_directories(crash PRIVATE include)
-target_link_libraries(crash
-  ${PROJECT_NAME}
-)
-ament_target_dependencies(crash ${THIS_PACKAGE_INCLUDE_DEPENDS})
-
-install(TARGETS crash
-  RUNTIME DESTINATION lib/${PROJECT_NAME}
-)
-
-# Add moveit test executable
-add_executable(moveit_test src/moveit_test.cpp)
-target_include_directories(moveit_test PRIVATE include)
-target_link_libraries(moveit_test
-  ${PROJECT_NAME}
-)
-ament_target_dependencies(moveit_test ${THIS_PACKAGE_INCLUDE_DEPENDS})
-
-install(TARGETS moveit_test
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 

@@ -1,7 +1,7 @@
-#include <test_competitor/test_competitor.hpp>
+#include <nist_competitor/nist_competitor.hpp>
 
-TestCompetitor::TestCompetitor()
-    : Node("test_competitor"),
+NistCompetitor::NistCompetitor()
+    : Node("nist_competitor"),
       floor_robot_(std::shared_ptr<rclcpp::Node>(std::move(this)), "floor_robot"),
       ceiling_robot_(std::shared_ptr<rclcpp::Node>(std::move(this)), "ceiling_robot"),
       planning_scene_()
@@ -28,78 +28,78 @@ TestCompetitor::TestCompetitor()
   options.callback_group = topic_cb_group_;
 
   orders_sub_ = this->create_subscription<ariac_msgs::msg::Order>("/ariac/orders", 1,
-                                                                  std::bind(&TestCompetitor::orders_cb, this, std::placeholders::_1), options);
+                                                                  std::bind(&NistCompetitor::orders_cb, this, std::placeholders::_1), options);
 
   competition_state_sub_ = this->create_subscription<ariac_msgs::msg::CompetitionState>("/ariac/competition_state", 1,
-                                                                                        std::bind(&TestCompetitor::competition_state_cb, this, std::placeholders::_1), options);
+                                                                                        std::bind(&NistCompetitor::competition_state_cb, this, std::placeholders::_1), options);
 
   kts1_camera_sub_ = this->create_subscription<ariac_msgs::msg::AdvancedLogicalCameraImage>(
       "/ariac/sensors/kts1_camera/image", rclcpp::SensorDataQoS(),
-      std::bind(&TestCompetitor::kts1_camera_cb, this, std::placeholders::_1), options);
+      std::bind(&NistCompetitor::kts1_camera_cb, this, std::placeholders::_1), options);
 
   kts2_camera_sub_ = this->create_subscription<ariac_msgs::msg::AdvancedLogicalCameraImage>(
       "/ariac/sensors/kts2_camera/image", rclcpp::SensorDataQoS(),
-      std::bind(&TestCompetitor::kts2_camera_cb, this, std::placeholders::_1), options);
+      std::bind(&NistCompetitor::kts2_camera_cb, this, std::placeholders::_1), options);
 
   left_bins_camera_sub_ = this->create_subscription<ariac_msgs::msg::AdvancedLogicalCameraImage>(
       "/ariac/sensors/left_bins_camera/image", rclcpp::SensorDataQoS(),
-      std::bind(&TestCompetitor::left_bins_camera_cb, this, std::placeholders::_1), options);
+      std::bind(&NistCompetitor::left_bins_camera_cb, this, std::placeholders::_1), options);
 
   right_bins_camera_sub_ = this->create_subscription<ariac_msgs::msg::AdvancedLogicalCameraImage>(
       "/ariac/sensors/right_bins_camera/image", rclcpp::SensorDataQoS(),
-      std::bind(&TestCompetitor::right_bins_camera_cb, this, std::placeholders::_1), options);
+      std::bind(&NistCompetitor::right_bins_camera_cb, this, std::placeholders::_1), options);
 
   conveyor_camera_sub_ = this->create_subscription<ariac_msgs::msg::AdvancedLogicalCameraImage>(
       "/ariac/sensors/conveyor_camera/image", rclcpp::SensorDataQoS(),
-      std::bind(&TestCompetitor::conveyor_camera_cb, this, std::placeholders::_1), options);
+      std::bind(&NistCompetitor::conveyor_camera_cb, this, std::placeholders::_1), options);
 
   breakbeam_sub_ = this->create_subscription<ariac_msgs::msg::BreakBeamStatus>(
       "/ariac/sensors/conveyor_breakbeam/change", rclcpp::SensorDataQoS(),
-      std::bind(&TestCompetitor::breakbeam_cb, this, std::placeholders::_1), options);
+      std::bind(&NistCompetitor::breakbeam_cb, this, std::placeholders::_1), options);
 
   conveyor_parts_sub_ = this->create_subscription<ariac_msgs::msg::ConveyorParts>(
       "/ariac/conveyor_parts", rclcpp::SensorDataQoS(),
-      std::bind(&TestCompetitor::conveyor_parts_cb, this, std::placeholders::_1), options);
+      std::bind(&NistCompetitor::conveyor_parts_cb, this, std::placeholders::_1), options);
   
   floor_gripper_state_sub_ = this->create_subscription<ariac_msgs::msg::VacuumGripperState>(
       "/ariac/floor_robot_gripper_state", rclcpp::SensorDataQoS(),
-      std::bind(&TestCompetitor::floor_gripper_state_cb, this, std::placeholders::_1), options);
+      std::bind(&NistCompetitor::floor_gripper_state_cb, this, std::placeholders::_1), options);
 
   ceiling_gripper_state_sub_ = this->create_subscription<ariac_msgs::msg::VacuumGripperState>(
       "/ariac/ceiling_robot_gripper_state", rclcpp::SensorDataQoS(),
-      std::bind(&TestCompetitor::ceiling_gripper_state_cb, this, std::placeholders::_1), options);
+      std::bind(&NistCompetitor::ceiling_gripper_state_cb, this, std::placeholders::_1), options);
 
   as1_state_sub_ = this->create_subscription<ariac_msgs::msg::AssemblyState>(
       "/ariac/assembly_insert_1_assembly_state", rclcpp::SensorDataQoS(),
-      std::bind(&TestCompetitor::as1_state_cb, this, std::placeholders::_1), options);
+      std::bind(&NistCompetitor::as1_state_cb, this, std::placeholders::_1), options);
 
   as2_state_sub_ = this->create_subscription<ariac_msgs::msg::AssemblyState>(
       "/ariac/assembly_insert_2_assembly_state", rclcpp::SensorDataQoS(),
-      std::bind(&TestCompetitor::as2_state_cb, this, std::placeholders::_1), options);
+      std::bind(&NistCompetitor::as2_state_cb, this, std::placeholders::_1), options);
 
   as3_state_sub_ = this->create_subscription<ariac_msgs::msg::AssemblyState>(
       "/ariac/assembly_insert_3_assembly_state", rclcpp::SensorDataQoS(),
-      std::bind(&TestCompetitor::as3_state_cb, this, std::placeholders::_1), options);
+      std::bind(&NistCompetitor::as3_state_cb, this, std::placeholders::_1), options);
 
   as4_state_sub_ = this->create_subscription<ariac_msgs::msg::AssemblyState>(
       "/ariac/assembly_insert_4_assembly_state", rclcpp::SensorDataQoS(),
-      std::bind(&TestCompetitor::as4_state_cb, this, std::placeholders::_1), options);
+      std::bind(&NistCompetitor::as4_state_cb, this, std::placeholders::_1), options);
 
   agv1_status_sub_ = this->create_subscription<ariac_msgs::msg::AGVStatus>(
       "/ariac/agv1_status", 10,
-      std::bind(&TestCompetitor::agv1_status_cb, this, std::placeholders::_1), options);
+      std::bind(&NistCompetitor::agv1_status_cb, this, std::placeholders::_1), options);
 
   agv2_status_sub_ = this->create_subscription<ariac_msgs::msg::AGVStatus>(
       "/ariac/agv2_status", 10,
-      std::bind(&TestCompetitor::agv2_status_cb, this, std::placeholders::_1), options);
+      std::bind(&NistCompetitor::agv2_status_cb, this, std::placeholders::_1), options);
 
   agv3_status_sub_ = this->create_subscription<ariac_msgs::msg::AGVStatus>(
       "/ariac/agv3_status", 10,
-      std::bind(&TestCompetitor::agv3_status_cb, this, std::placeholders::_1), options);
+      std::bind(&NistCompetitor::agv3_status_cb, this, std::placeholders::_1), options);
 
   agv4_status_sub_ = this->create_subscription<ariac_msgs::msg::AGVStatus>(
       "/ariac/agv4_status", 10,
-      std::bind(&TestCompetitor::agv4_status_cb, this, std::placeholders::_1), options);
+      std::bind(&NistCompetitor::agv4_status_cb, this, std::placeholders::_1), options);
 
   // Initialize service clients
   quality_checker_ = this->create_client<ariac_msgs::srv::PerformQualityCheck>("/ariac/perform_quality_check");
@@ -111,25 +111,25 @@ TestCompetitor::TestCompetitor()
   RCLCPP_INFO(this->get_logger(), "Initialization successful.");
 }
 
-TestCompetitor::~TestCompetitor()
+NistCompetitor::~NistCompetitor()
 {
   floor_robot_.~MoveGroupInterface();
   ceiling_robot_.~MoveGroupInterface();
 }
 
-void TestCompetitor::orders_cb(
+void NistCompetitor::orders_cb(
     const ariac_msgs::msg::Order::ConstSharedPtr msg)
 {
   orders_.push_back(*msg);
 }
 
-void TestCompetitor::competition_state_cb(
+void NistCompetitor::competition_state_cb(
     const ariac_msgs::msg::CompetitionState::ConstSharedPtr msg)
 {
   competition_state_ = msg->competition_state;
 }
 
-void TestCompetitor::kts1_camera_cb(
+void NistCompetitor::kts1_camera_cb(
     const ariac_msgs::msg::AdvancedLogicalCameraImage::ConstSharedPtr msg)
 {
   if (!kts1_camera_recieved_data)
@@ -142,7 +142,7 @@ void TestCompetitor::kts1_camera_cb(
   kts1_camera_pose_ = msg->sensor_pose;
 }
 
-void TestCompetitor::kts2_camera_cb(
+void NistCompetitor::kts2_camera_cb(
     const ariac_msgs::msg::AdvancedLogicalCameraImage::ConstSharedPtr msg)
 {
   if (!kts2_camera_recieved_data)
@@ -155,7 +155,7 @@ void TestCompetitor::kts2_camera_cb(
   kts2_camera_pose_ = msg->sensor_pose;
 }
 
-void TestCompetitor::left_bins_camera_cb(
+void NistCompetitor::left_bins_camera_cb(
     const ariac_msgs::msg::AdvancedLogicalCameraImage::ConstSharedPtr msg)
 {
   if (!left_bins_camera_recieved_data)
@@ -168,7 +168,7 @@ void TestCompetitor::left_bins_camera_cb(
   left_bins_camera_pose_ = msg->sensor_pose;
 }
 
-void TestCompetitor::right_bins_camera_cb(
+void NistCompetitor::right_bins_camera_cb(
     const ariac_msgs::msg::AdvancedLogicalCameraImage::ConstSharedPtr msg)
 {
   if (!right_bins_camera_recieved_data)
@@ -181,7 +181,7 @@ void TestCompetitor::right_bins_camera_cb(
   right_bins_camera_pose_ = msg->sensor_pose;
 }
 
-void TestCompetitor::conveyor_parts_cb(
+void NistCompetitor::conveyor_parts_cb(
     const ariac_msgs::msg::ConveyorParts::ConstSharedPtr msg
 )
 {
@@ -194,7 +194,7 @@ void TestCompetitor::conveyor_parts_cb(
   conveyor_parts_expected_ = msg->parts;
 }
 
-void TestCompetitor::conveyor_camera_cb(
+void NistCompetitor::conveyor_camera_cb(
     const ariac_msgs::msg::AdvancedLogicalCameraImage::ConstSharedPtr msg)
 {
   if (!conveyor_camera_recieved_data)
@@ -207,7 +207,7 @@ void TestCompetitor::conveyor_camera_cb(
   conveyor_camera_pose_ = msg->sensor_pose;
 }
 
-void TestCompetitor::breakbeam_cb(
+void NistCompetitor::breakbeam_cb(
     const ariac_msgs::msg::BreakBeamStatus::ConstSharedPtr msg)
 {
     if (!breakbeam_received_data)
@@ -253,67 +253,67 @@ void TestCompetitor::breakbeam_cb(
     }
 }
 
-void TestCompetitor::floor_gripper_state_cb(
+void NistCompetitor::floor_gripper_state_cb(
     const ariac_msgs::msg::VacuumGripperState::ConstSharedPtr msg)
 {
   floor_gripper_state_ = *msg;
 }
 
-void TestCompetitor::ceiling_gripper_state_cb(
+void NistCompetitor::ceiling_gripper_state_cb(
     const ariac_msgs::msg::VacuumGripperState::ConstSharedPtr msg)
 {
   ceiling_gripper_state_ = *msg;
 }
 
-void TestCompetitor::as1_state_cb(
+void NistCompetitor::as1_state_cb(
     const ariac_msgs::msg::AssemblyState::ConstSharedPtr msg)
 {
   assembly_station_states_.insert_or_assign(ariac_msgs::msg::AssemblyTask::AS1, *msg);
 }
 
-void TestCompetitor::as2_state_cb(
+void NistCompetitor::as2_state_cb(
     const ariac_msgs::msg::AssemblyState::ConstSharedPtr msg)
 {
   assembly_station_states_.insert_or_assign(ariac_msgs::msg::AssemblyTask::AS2, *msg);
 }
 
-void TestCompetitor::as3_state_cb(
+void NistCompetitor::as3_state_cb(
     const ariac_msgs::msg::AssemblyState::ConstSharedPtr msg)
 {
   assembly_station_states_.insert_or_assign(ariac_msgs::msg::AssemblyTask::AS3, *msg);
 }
 
-void TestCompetitor::as4_state_cb(
+void NistCompetitor::as4_state_cb(
     const ariac_msgs::msg::AssemblyState::ConstSharedPtr msg)
 {
   assembly_station_states_.insert_or_assign(ariac_msgs::msg::AssemblyTask::AS4, *msg);
 }
 
-void TestCompetitor::agv1_status_cb(
+void NistCompetitor::agv1_status_cb(
     const ariac_msgs::msg::AGVStatus::ConstSharedPtr msg)
 {
   agv_locations_[1] = msg->location;
 }
 
-void TestCompetitor::agv2_status_cb(
+void NistCompetitor::agv2_status_cb(
     const ariac_msgs::msg::AGVStatus::ConstSharedPtr msg)
 {
   agv_locations_[2] = msg->location;
 }
 
-void TestCompetitor::agv3_status_cb(
+void NistCompetitor::agv3_status_cb(
     const ariac_msgs::msg::AGVStatus::ConstSharedPtr msg)
 {
   agv_locations_[3] = msg->location;
 }
 
-void TestCompetitor::agv4_status_cb(
+void NistCompetitor::agv4_status_cb(
     const ariac_msgs::msg::AGVStatus::ConstSharedPtr msg)
 {
   agv_locations_[4] = msg->location;
 }
 
-geometry_msgs::msg::Pose TestCompetitor::MultiplyPose(
+geometry_msgs::msg::Pose NistCompetitor::MultiplyPose(
     geometry_msgs::msg::Pose p1, geometry_msgs::msg::Pose p2)
 {
   KDL::Frame f1;
@@ -327,7 +327,7 @@ geometry_msgs::msg::Pose TestCompetitor::MultiplyPose(
   return tf2::toMsg(f3);
 }
 
-void TestCompetitor::LogPose(geometry_msgs::msg::Pose p)
+void NistCompetitor::LogPose(geometry_msgs::msg::Pose p)
 {
   tf2::Quaternion q(
       p.orientation.x,
@@ -347,7 +347,7 @@ void TestCompetitor::LogPose(geometry_msgs::msg::Pose p)
               roll, pitch, yaw);
 }
 
-geometry_msgs::msg::Pose TestCompetitor::BuildPose(
+geometry_msgs::msg::Pose NistCompetitor::BuildPose(
     double x, double y, double z, geometry_msgs::msg::Quaternion orientation)
 {
   geometry_msgs::msg::Pose pose;
@@ -359,7 +359,7 @@ geometry_msgs::msg::Pose TestCompetitor::BuildPose(
   return pose;
 }
 
-geometry_msgs::msg::Pose TestCompetitor::FrameWorldPose(std::string frame_id)
+geometry_msgs::msg::Pose NistCompetitor::FrameWorldPose(std::string frame_id)
 {
   geometry_msgs::msg::TransformStamped t;
   geometry_msgs::msg::Pose pose;
@@ -381,7 +381,7 @@ geometry_msgs::msg::Pose TestCompetitor::FrameWorldPose(std::string frame_id)
   return pose;
 }
 
-double TestCompetitor::GetYaw(geometry_msgs::msg::Pose pose)
+double NistCompetitor::GetYaw(geometry_msgs::msg::Pose pose)
 {
   tf2::Quaternion q(
       pose.orientation.x,
@@ -395,7 +395,7 @@ double TestCompetitor::GetYaw(geometry_msgs::msg::Pose pose)
   return yaw;
 }
 
-geometry_msgs::msg::Quaternion TestCompetitor::QuaternionFromRPY(double r, double p, double y)
+geometry_msgs::msg::Quaternion NistCompetitor::QuaternionFromRPY(double r, double p, double y)
 {
   tf2::Quaternion q;
   geometry_msgs::msg::Quaternion q_msg;
@@ -410,7 +410,7 @@ geometry_msgs::msg::Quaternion TestCompetitor::QuaternionFromRPY(double r, doubl
   return q_msg;
 }
 
-moveit_msgs::msg::CollisionObject TestCompetitor::CreateCollisionObject(
+moveit_msgs::msg::CollisionObject NistCompetitor::CreateCollisionObject(
   std::string name, std::string mesh_file, geometry_msgs::msg::Pose model_pose)
 {
   moveit_msgs::msg::CollisionObject collision;
@@ -421,7 +421,7 @@ moveit_msgs::msg::CollisionObject TestCompetitor::CreateCollisionObject(
   shape_msgs::msg::Mesh mesh;
   shapes::ShapeMsg mesh_msg;
 
-  std::string package_share_directory = ament_index_cpp::get_package_share_directory("test_competitor");
+  std::string package_share_directory = ament_index_cpp::get_package_share_directory("nist_competitor");
   std::stringstream path;
   path << "file://" << package_share_directory << "/meshes/" << mesh_file;
   std::string model_path = path.str();
@@ -439,13 +439,13 @@ moveit_msgs::msg::CollisionObject TestCompetitor::CreateCollisionObject(
   return collision;
 }
 
-void TestCompetitor::AddModelToPlanningScene(
+void NistCompetitor::AddModelToPlanningScene(
     std::string name, std::string mesh_file, geometry_msgs::msg::Pose model_pose)
 {
   planning_scene_.applyCollisionObject(CreateCollisionObject(name, mesh_file, model_pose));
 }
 
-void TestCompetitor::AddModelsToPlanningScene()
+void NistCompetitor::AddModelsToPlanningScene()
 {
   std::vector<moveit_msgs::msg::CollisionObject> objects;
 
@@ -541,7 +541,7 @@ void TestCompetitor::AddModelsToPlanningScene()
   }
 }
 
-geometry_msgs::msg::Quaternion TestCompetitor::SetRobotOrientation(double rotation)
+geometry_msgs::msg::Quaternion NistCompetitor::SetRobotOrientation(double rotation)
 {
   tf2::Quaternion tf_q;
   tf_q.setRPY(0, 3.14159, rotation);
@@ -556,7 +556,7 @@ geometry_msgs::msg::Quaternion TestCompetitor::SetRobotOrientation(double rotati
   return q;
 }
 
-bool TestCompetitor::FloorRobotMovetoTarget()
+bool NistCompetitor::FloorRobotMovetoTarget()
 {
   moveit::planning_interface::MoveGroupInterface::Plan plan;
   bool success = static_cast<bool>(floor_robot_.plan(plan));
@@ -572,7 +572,7 @@ bool TestCompetitor::FloorRobotMovetoTarget()
   }
 }
 
-bool TestCompetitor::FloorRobotMoveCartesian(
+bool NistCompetitor::FloorRobotMoveCartesian(
     std::vector<geometry_msgs::msg::Pose> waypoints, double vsf, double asf, bool avoid_collisions)
 {
   moveit_msgs::msg::RobotTrajectory trajectory;
@@ -594,7 +594,7 @@ bool TestCompetitor::FloorRobotMoveCartesian(
   return static_cast<bool>(floor_robot_.execute(trajectory));
 }
 
-std::pair<bool,moveit_msgs::msg::RobotTrajectory> TestCompetitor::FloorRobotPlanCartesian(
+std::pair<bool,moveit_msgs::msg::RobotTrajectory> NistCompetitor::FloorRobotPlanCartesian(
     std::vector<geometry_msgs::msg::Pose> waypoints, double vsf, double asf, bool avoid_collisions)
 {
   moveit_msgs::msg::RobotTrajectory trajectory;
@@ -616,7 +616,7 @@ std::pair<bool,moveit_msgs::msg::RobotTrajectory> TestCompetitor::FloorRobotPlan
   return std::make_pair(true, trajectory);
 }
 
-void TestCompetitor::FloorRobotWaitForAttach(double timeout)
+void NistCompetitor::FloorRobotWaitForAttach(double timeout)
 {
   // Wait for part to be attached
   rclcpp::Time start = now();
@@ -643,7 +643,7 @@ void TestCompetitor::FloorRobotWaitForAttach(double timeout)
   }
 }
 
-void TestCompetitor::FloorRobotSendHome()
+void NistCompetitor::FloorRobotSendHome()
 {
   // Move floor robot to home joint state
   RCLCPP_INFO_STREAM(get_logger(), "Moving Floor Robot to home position");
@@ -651,7 +651,7 @@ void TestCompetitor::FloorRobotSendHome()
   FloorRobotMovetoTarget();
 }
 
-bool TestCompetitor::FloorRobotSetGripperState(bool enable)
+bool NistCompetitor::FloorRobotSetGripperState(bool enable)
 {
   if (floor_gripper_state_.enabled == enable)
   {
@@ -679,7 +679,7 @@ bool TestCompetitor::FloorRobotSetGripperState(bool enable)
   return true;
 }
 
-bool TestCompetitor::FloorRobotChangeGripper(std::string station, std::string gripper_type)
+bool NistCompetitor::FloorRobotChangeGripper(std::string station, std::string gripper_type)
 {
   // Move gripper into tool changer
   RCLCPP_INFO_STREAM(get_logger(), "Changing gripper to " << gripper_type << " gripper");
@@ -726,7 +726,7 @@ bool TestCompetitor::FloorRobotChangeGripper(std::string station, std::string gr
   return true;
 }
 
-bool TestCompetitor::FloorRobotPickandPlaceTray(int tray_id, int agv_num)
+bool NistCompetitor::FloorRobotPickandPlaceTray(int tray_id, int agv_num)
 {
   RCLCPP_INFO_STREAM(get_logger(), "Attempting to pick up kit tray " << tray_id << " and place on AGV " << agv_num);
 
@@ -858,7 +858,7 @@ bool TestCompetitor::FloorRobotPickandPlaceTray(int tray_id, int agv_num)
   return true;
 }
 
-bool TestCompetitor::FloorRobotPickBinPart(ariac_msgs::msg::Part part_to_pick)
+bool NistCompetitor::FloorRobotPickBinPart(ariac_msgs::msg::Part part_to_pick)
 {
   RCLCPP_INFO_STREAM(get_logger(), "Attempting to pick a " << part_colors_[part_to_pick.color] << " " << part_types_[part_to_pick.type] << " from the bins");
 
@@ -970,7 +970,7 @@ bool TestCompetitor::FloorRobotPickBinPart(ariac_msgs::msg::Part part_to_pick)
   return true;
 }
 
-bool TestCompetitor::FloorRobotPickConveyorPart(ariac_msgs::msg::Part part_to_pick)
+bool NistCompetitor::FloorRobotPickConveyorPart(ariac_msgs::msg::Part part_to_pick)
 {
   if (conveyor_parts_expected_.empty())
   {
@@ -1120,7 +1120,7 @@ bool TestCompetitor::FloorRobotPickConveyorPart(ariac_msgs::msg::Part part_to_pi
   return true;
 }
 
-bool TestCompetitor::FloorRobotPlacePartOnKitTray(int agv_num, int quadrant)
+bool NistCompetitor::FloorRobotPlacePartOnKitTray(int agv_num, int quadrant)
 {
   if (!floor_gripper_state_.attached)
   {
@@ -1175,7 +1175,7 @@ bool TestCompetitor::FloorRobotPlacePartOnKitTray(int agv_num, int quadrant)
   return true;
 }
 
-void TestCompetitor::CeilingRobotSendHome()
+void NistCompetitor::CeilingRobotSendHome()
 {
   // Move ceiling robot to home joint state
   RCLCPP_INFO_STREAM(get_logger(), "Moving ceiling robot to home position");
@@ -1183,7 +1183,7 @@ void TestCompetitor::CeilingRobotSendHome()
   CeilingRobotMovetoTarget();
 }
 
-bool TestCompetitor::CeilingRobotSetGripperState(bool enable)
+bool NistCompetitor::CeilingRobotSetGripperState(bool enable)
 {
   if (ceiling_gripper_state_.enabled == enable)
   {
@@ -1211,7 +1211,7 @@ bool TestCompetitor::CeilingRobotSetGripperState(bool enable)
   return true;
 }
 
-void TestCompetitor::CeilingRobotWaitForAttach(double timeout)
+void NistCompetitor::CeilingRobotWaitForAttach(double timeout)
 {
   // Wait for part to be attached
   rclcpp::Time start = now();
@@ -1238,7 +1238,7 @@ void TestCompetitor::CeilingRobotWaitForAttach(double timeout)
   }
 }
 
-bool TestCompetitor::CeilingRobotWaitForAssemble(int station, ariac_msgs::msg::AssemblyPart part)
+bool NistCompetitor::CeilingRobotWaitForAssemble(int station, ariac_msgs::msg::AssemblyPart part)
 {
   // Wait for part to be attached
   rclcpp::Time start = now();
@@ -1304,7 +1304,7 @@ bool TestCompetitor::CeilingRobotWaitForAssemble(int station, ariac_msgs::msg::A
   return true;
 }
 
-bool TestCompetitor::CeilingRobotMovetoTarget()
+bool NistCompetitor::CeilingRobotMovetoTarget()
 {
   moveit::planning_interface::MoveGroupInterface::Plan plan;
   bool success = static_cast<bool>(ceiling_robot_.plan(plan));
@@ -1320,7 +1320,7 @@ bool TestCompetitor::CeilingRobotMovetoTarget()
   }
 }
 
-bool TestCompetitor::CeilingRobotMoveCartesian(
+bool NistCompetitor::CeilingRobotMoveCartesian(
     std::vector<geometry_msgs::msg::Pose> waypoints, double vsf, double asf, bool avoid_collisions)
 {
   moveit_msgs::msg::RobotTrajectory trajectory;
@@ -1342,7 +1342,7 @@ bool TestCompetitor::CeilingRobotMoveCartesian(
   return static_cast<bool>(ceiling_robot_.execute(trajectory));
 }
 
-std::pair<bool,moveit_msgs::msg::RobotTrajectory> TestCompetitor::CeilingRobotPlanCartesian(
+std::pair<bool,moveit_msgs::msg::RobotTrajectory> NistCompetitor::CeilingRobotPlanCartesian(
     std::vector<geometry_msgs::msg::Pose> waypoints, double vsf, double asf, bool avoid_collisions)
 {
   moveit_msgs::msg::RobotTrajectory trajectory;
@@ -1364,7 +1364,7 @@ std::pair<bool,moveit_msgs::msg::RobotTrajectory> TestCompetitor::CeilingRobotPl
   return std::make_pair(true, trajectory);
 }
 
-bool TestCompetitor::CeilingRobotMoveToAssemblyStation(int station)
+bool NistCompetitor::CeilingRobotMoveToAssemblyStation(int station)
 {
   RCLCPP_INFO_STREAM(get_logger(), "Moving ceiling robot to assembly station " << station);
   switch (station)
@@ -1389,7 +1389,7 @@ bool TestCompetitor::CeilingRobotMoveToAssemblyStation(int station)
   return CeilingRobotMovetoTarget();
 }
 
-bool TestCompetitor::CeilingRobotPickAGVPart(ariac_msgs::msg::PartPose part)
+bool NistCompetitor::CeilingRobotPickAGVPart(ariac_msgs::msg::PartPose part)
 {
   RCLCPP_INFO_STREAM(get_logger(), "Determining waypoints to pick " << part_types_[part.part.type]);
   double part_rotation = GetYaw(part.pose);
@@ -1434,7 +1434,7 @@ bool TestCompetitor::CeilingRobotPickAGVPart(ariac_msgs::msg::PartPose part)
   return true;
 }
 
-bool TestCompetitor::CeilingRobotAssemblePart(int station, ariac_msgs::msg::AssemblyPart part)
+bool NistCompetitor::CeilingRobotAssemblePart(int station, ariac_msgs::msg::AssemblyPart part)
 {
   // Check that part is attached and matches part to assemble
   if (!ceiling_gripper_state_.attached)
@@ -1529,7 +1529,7 @@ bool TestCompetitor::CeilingRobotAssemblePart(int station, ariac_msgs::msg::Asse
   return true;
 }
 
-bool TestCompetitor::CompleteOrders()
+bool NistCompetitor::CompleteOrders()
 {
   // Wait for first order to be published
   while (orders_.size() == 0)
@@ -1570,27 +1570,27 @@ bool TestCompetitor::CompleteOrders()
     if (current_order_.type == ariac_msgs::msg::Order::KITTING)
     {
       RCLCPP_INFO_STREAM(get_logger(), "Current order is: " << current_order_.id << " of type KITTING");
-      TestCompetitor::CompleteKittingTask(current_order_.kitting_task);
+      NistCompetitor::CompleteKittingTask(current_order_.kitting_task);
     }
     else if (current_order_.type == ariac_msgs::msg::Order::ASSEMBLY)
     {
       RCLCPP_INFO_STREAM(get_logger(), "Current order is: " << current_order_.id << " of type ASSEMBLY");
-      TestCompetitor::CompleteAssemblyTask(current_order_.assembly_task);
+      NistCompetitor::CompleteAssemblyTask(current_order_.assembly_task);
     }
     else if (current_order_.type == ariac_msgs::msg::Order::COMBINED)
     {
       RCLCPP_INFO_STREAM(get_logger(), "Current order is: " << current_order_.id << " of type COMBINED");
-      TestCompetitor::CompleteCombinedTask(current_order_.combined_task);
+      NistCompetitor::CompleteCombinedTask(current_order_.combined_task);
     }
 
 
-    TestCompetitor::SubmitOrder(current_order_.id);
+    NistCompetitor::SubmitOrder(current_order_.id);
   }
   return success;
 }
 
 
-bool TestCompetitor::CompleteKittingTask(ariac_msgs::msg::KittingTask task)
+bool NistCompetitor::CompleteKittingTask(ariac_msgs::msg::KittingTask task)
 {
   FloorRobotSendHome();
 
@@ -1633,7 +1633,7 @@ bool TestCompetitor::CompleteKittingTask(ariac_msgs::msg::KittingTask task)
   return true;
 }
 
-bool TestCompetitor::CompleteAssemblyTask(ariac_msgs::msg::AssemblyTask task)
+bool NistCompetitor::CompleteAssemblyTask(ariac_msgs::msg::AssemblyTask task)
 {
   // Send AGVs to assembly station
   for (auto const &agv : task.agv_numbers)
@@ -1732,7 +1732,7 @@ bool TestCompetitor::CompleteAssemblyTask(ariac_msgs::msg::AssemblyTask task)
   return true;
 }
 
-bool TestCompetitor::CompleteCombinedTask(ariac_msgs::msg::CombinedTask task)
+bool NistCompetitor::CompleteCombinedTask(ariac_msgs::msg::CombinedTask task)
 {
   RCLCPP_INFO_STREAM(get_logger(),"Starting Combined Task");
   // Decide on a tray to use
@@ -1865,7 +1865,7 @@ bool TestCompetitor::CompleteCombinedTask(ariac_msgs::msg::CombinedTask task)
   return true;
 }
 
-bool TestCompetitor::StartCompetition()
+bool NistCompetitor::StartCompetition()
 {
   // Wait for competition state to be ready
   while (competition_state_ != ariac_msgs::msg::CompetitionState::READY)
@@ -1888,7 +1888,7 @@ bool TestCompetitor::StartCompetition()
   return future.get()->success;
 }
 
-bool TestCompetitor::EndCompetition()
+bool NistCompetitor::EndCompetition()
 {
   rclcpp::Client<std_srvs::srv::Trigger>::SharedPtr client;
 
@@ -1906,7 +1906,7 @@ bool TestCompetitor::EndCompetition()
   return future.get()->success;
 }
 
-bool TestCompetitor::SubmitOrder(std::string order_id)
+bool NistCompetitor::SubmitOrder(std::string order_id)
 {
   RCLCPP_INFO_STREAM(get_logger(), "Submitting order " << order_id);
   rclcpp::Client<ariac_msgs::srv::SubmitOrder>::SharedPtr client;
@@ -1921,7 +1921,7 @@ bool TestCompetitor::SubmitOrder(std::string order_id)
   return future.get()->success;
 }
 
-bool TestCompetitor::LockAGVTray(int agv_num)
+bool NistCompetitor::LockAGVTray(int agv_num)
 {
   RCLCPP_INFO_STREAM(get_logger(), "Locking Tray to AGV" << agv_num);
 
@@ -1939,7 +1939,7 @@ bool TestCompetitor::LockAGVTray(int agv_num)
   return future.get()->success;
 }
 
-bool TestCompetitor::UnlockAGVTray(int agv_num)
+bool NistCompetitor::UnlockAGVTray(int agv_num)
 {
   rclcpp::Client<std_srvs::srv::Trigger>::SharedPtr client;
 
@@ -1955,7 +1955,7 @@ bool TestCompetitor::UnlockAGVTray(int agv_num)
   return future.get()->success;
 }
 
-bool TestCompetitor::MoveAGV(int agv_num, int destination)
+bool NistCompetitor::MoveAGV(int agv_num, int destination)
 {
   RCLCPP_INFO_STREAM(get_logger(), "Moving AGV" << agv_num << " to " << agv_destination_[destination]);
   rclcpp::Client<ariac_msgs::srv::MoveAGV>::SharedPtr client;

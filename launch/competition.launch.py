@@ -51,8 +51,8 @@ def launch_setup(context, *args, **kwargs):
         }.items()
     )
 
-    # Test Competitor node
-    test_competitor = Node(
+    # Nist Competitor node
+    nist_competitor = Node(
         package="nist_competitor",
         executable="competitor",
         output="screen",
@@ -67,7 +67,7 @@ def launch_setup(context, *args, **kwargs):
     )
 
     nodes_to_start = [
-        test_competitor,
+        nist_competitor,
         ariac_environment,
         moveit
     ]

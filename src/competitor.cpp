@@ -1,4 +1,4 @@
-#include <test_competitor/test_competitor.hpp>
+#include <nist_competitor/nist_competitor.hpp>
 
 #include <rclcpp/rclcpp.hpp>
 
@@ -6,27 +6,27 @@ int main(int argc, char *argv[])
 {
   rclcpp::init(argc, argv);
 
-  auto test_competitor = std::make_shared<TestCompetitor>();
+  auto nist_competitor = std::make_shared<NistCompetitor>();
 
   rclcpp::executors::MultiThreadedExecutor executor;
-  executor.add_node(test_competitor);
+  executor.add_node(nist_competitor);
   std::thread([&executor]() { executor.spin(); }).detach();
 
   // Start Competition
-  test_competitor->StartCompetition();
+  nist_competitor->StartCompetition();
 
-  test_competitor->AddModelsToPlanningScene();
+  nist_competitor->AddModelsToPlanningScene();
 
   sleep(2);
 
   // Move Robots to Home Poses
-  test_competitor->FloorRobotSendHome();
-  test_competitor->CeilingRobotSendHome();
+  nist_competitor->FloorRobotSendHome();
+  nist_competitor->CeilingRobotSendHome();
 
   // Complete Orders
-  test_competitor->CompleteOrders();
+  nist_competitor->CompleteOrders();
 
-  test_competitor->EndCompetition();
+  nist_competitor->EndCompetition();
 
   rclcpp::shutdown();
 }

@@ -30,7 +30,7 @@ def launch_setup(context, *args, **kwargs):
         .to_moveit_configs()
     )
 
-    test_competitor = Node(
+    nist_competitor = Node(
         package="nist_competitor",
         executable="competitor",
         output="screen",
@@ -68,7 +68,7 @@ def launch_setup(context, *args, **kwargs):
     )
 
     nodes_to_start = [
-        test_competitor,
+        nist_competitor,
         rviz_node
     ]
 

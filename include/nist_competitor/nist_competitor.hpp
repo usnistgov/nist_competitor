@@ -47,13 +47,13 @@
 
 #include <geometry_msgs/msg/pose.hpp>
 
-class TestCompetitor : public rclcpp::Node
+class NistCompetitor : public rclcpp::Node
 {
 public:
   /// Constructor
-  TestCompetitor();
+  NistCompetitor();
 
-  ~TestCompetitor();
+  ~NistCompetitor();
 
   void AddModelsToPlanningScene();
 

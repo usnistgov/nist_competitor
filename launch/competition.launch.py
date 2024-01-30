@@ -19,6 +19,7 @@ from moveit_configs_utils import MoveItConfigsBuilder
 def launch_setup(context, *args, **kwargs):
     # Launch arguments
     trial_name = LaunchConfiguration("trial_name")
+    record_state = LaunchConfiguration("record_state")
 
     urdf = os.path.join(get_package_share_directory("ariac_description"), "urdf/ariac_robots/ariac_robots.urdf.xacro")
 
@@ -46,8 +47,8 @@ def launch_setup(context, *args, **kwargs):
         launch_arguments={
             'trial_name': trial_name,
             'competitor_pkg': "nist_competitor",
-            # 'sensor_config': "sensors",
             'dev_mode': "true",
+            'record_state': record_state,
         }.items()
     )
 
@@ -80,6 +81,10 @@ def generate_launch_description():
 
     declared_arguments.append(
         DeclareLaunchArgument("trial_name", default_value="kitting", description="Name of ariac trial")
+    )
+
+    declared_arguments.append(
+        DeclareLaunchArgument("record_state", default_value="true", description="Record gazebo state.log for the trial")
     )
 
     return LaunchDescription(declared_arguments + [OpaqueFunction(function=launch_setup)])

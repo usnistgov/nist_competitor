@@ -1090,17 +1090,21 @@ bool NistCompetitor::FloorRobotPickConveyorPart(ariac_msgs::msg::Part part_to_pi
     FloorRobotSetGripperState(true);
     floor_robot_.execute(trajectory.second);
 
-    // Move up slightly
-    waypoints.clear();
-    waypoints.push_back(BuildPose(part_pose.position.x, robot_pose.position.y,
-                                  part_pose.position.z + 0.1, SetRobotOrientation(0)));
-    FloorRobotMoveCartesian(waypoints, 0.3, 0.3, true);
+    auto start_time = rclcpp::Time(now());
+
+    while(!floor_gripper_state_.attached){
+      if((rclcpp::Time(now())-start_time ).seconds() > 2.0)
+        break;
+    }
+
+
 
     if(floor_gripper_state_.attached)
     {
+      part_pose.position.y = robot_pose.position.y;
       // Add part to planning scene
       std::string part_name = part_colors_[part_to_pick.color] + "_" + part_types_[part_to_pick.type];
-      AddModelToPlanningScene(part_name, part_types_[part_to_pick.type] + ".stl", robot_pose);
+      AddModelToPlanningScene(part_name, part_types_[part_to_pick.type] + ".stl", part_pose);
       RCLCPP_INFO_STREAM(get_logger(), "Attached " << part_name << " to robot");
       floor_robot_.attachObject(part_name);
       order_planning_scene_objects_.push_back(part_name);
@@ -1108,11 +1112,17 @@ bool NistCompetitor::FloorRobotPickConveyorPart(ariac_msgs::msg::Part part_to_pi
       part_picked = true;
     }
 
-    // Move up
     waypoints.clear();
     waypoints.push_back(BuildPose(robot_pose.position.x, robot_pose.position.y,
-                                  robot_pose.position.z + 0.3, SetRobotOrientation(0)));
-    FloorRobotMoveCartesian(waypoints, 0.3, 0.3, true);
+                                    robot_pose.position.z + 0.2, SetRobotOrientation(part_rotation)));
+    
+    FloorRobotMoveCartesian(waypoints, 1, 1, false);
+
+    // Move up
+    // waypoints.clear();
+    // waypoints.push_back(BuildPose(robot_pose.position.x, robot_pose.position.y,
+    //                               robot_pose.position.z + 0.3, SetRobotOrientation(0)));
+    // FloorRobotMoveCartesian(waypoints, 0.3, 0.3, true);
     
     num_tries++;
   }
@@ -1427,7 +1437,7 @@ bool NistCompetitor::CeilingRobotPickAGVPart(ariac_msgs::msg::PartPose part)
   waypoints.clear();
   waypoints.push_back(BuildPose(part.pose.position.x, part.pose.position.y,
                                 part.pose.position.z + 0.3,
-                                SetRobotOrientation(0)));
+                                SetRobotOrientation(part_rotation)));
 
   CeilingRobotMoveCartesian(waypoints, 0.3, 0.3, true);
 
